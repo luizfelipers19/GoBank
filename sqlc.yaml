@@ -3,8 +3,6 @@ sql:
 - schema: "./db/migration"
   queries: "./db/query"
   engine: postgresql
-  database:
-    uri: postgresql://postgres:${PG_PASSWORD}@localhost:5432/authors
   gen:
     go:
       package: "db"
