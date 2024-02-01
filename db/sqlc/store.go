@@ -52,20 +52,56 @@ type TransferTxParams struct {
 
 // contains the Transfer result that will be the output of TransferTransaction operation
 type TransferTxResult struct {
-	TransferRecord Transfer `json:"transfer"`
-	FromAccount    Account  `json:"from_account"`
-	ToAccount      Account  `json:"to_account"`
-	FromEntry      Entry    `json:"from_entry"`
-	ToEntry        Entry    `json:"to_entry`
+	Transfer    Transfer `json:"transfer"`
+	FromAccount Account  `json:"from_account"`
+	ToAccount   Account  `json:"to_account"`
+	FromEntry   Entry    `json:"from_entry"`
+	ToEntry     Entry    `json:"to_entry`
 }
 
 // TransferTransaction
-// performs all needed transactions in order to perform a whole transfer. Will Use the execTransactions func as a helper
+// performs all needed transactions in order to perform a whole transfer (create transfer, entries for leaving and receiving money, and updating both account balances).
+// Will Use the execTransactions func as a helper
 func (store *Store) TransferTransaction(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTransaction(ctx, func(q *Queries) error {
+		var err error
+
+		// First, we create a Transfer record
+		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
+			FromAccountID: arg.FromAccountID,
+			ToAccountID:   arg.ToAccountID,
+			Amount:        arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Then, we create a negative Entry record for the account that is sending money
+		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: arg.FromAccountID,
+			Amount:    -arg.Amount,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// Then, we create a positive Entry record for the account that is receiving money
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: arg.ToAccountID,
+			Amount:    arg.Amount,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// TODO: update accounts balance
+
 		return nil
+
 	})
 
 	return result, err
