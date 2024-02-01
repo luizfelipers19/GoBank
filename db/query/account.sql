@@ -8,7 +8,7 @@ INSERT INTO accounts (
 )
 RETURNING *;
 
--- name: GetAccount :one
+-- name: GetAccountByID :one
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
@@ -16,12 +16,12 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM accounts
 ORDER BY id;
 
--- name: UpdateAccount :one
+-- name: UpdateAccountByID :one
 UPDATE accounts
   set balance = $2
 WHERE id = $1
 RETURNING *;
 
--- name: DeleteAccount :exec
+-- name: DeleteAccountByID :exec
 DELETE FROM accounts
 WHERE id = $1;
