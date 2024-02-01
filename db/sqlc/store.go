@@ -98,22 +98,44 @@ func (store *Store) TransferTransaction(ctx context.Context, arg TransferTxParam
 			return err
 		}
 
-		result.FromAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-			ID:     arg.FromAccountID,
-			Amount: -arg.Amount,
-		})
+		// if the FromAccountID is smaller than the ToAccountID, we remove money from the FromAccount first, and then we add money to the destiny account
+		if arg.FromAccountID < arg.ToAccountID {
 
-		if err != nil {
-			return err
-		}
+			result.FromAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+				ID:     arg.FromAccountID,
+				Amount: -arg.Amount,
+			})
 
-		result.ToAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-			ID:     arg.ToAccountID,
-			Amount: arg.Amount,
-		})
+			if err != nil {
+				return err
+			}
 
-		if err != nil {
-			return err
+			result.ToAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+				ID:     arg.ToAccountID,
+				Amount: arg.Amount,
+			})
+
+			if err != nil {
+				return err
+			}
+		} else { // if the FromAccountID is greater than the ToAccountID, we remove money from the FromAccount after adding money to the destiny account
+			result.ToAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+				ID:     arg.ToAccountID,
+				Amount: arg.Amount,
+			})
+
+			if err != nil {
+				return err
+			}
+
+			result.FromAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+				ID:     arg.FromAccountID,
+				Amount: -arg.Amount,
+			})
+
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
