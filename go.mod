@@ -1,3 +1,3 @@
 module github.com/luizfelipers19/gobank
 
-go 1.21.1
+go 1.21
