@@ -101,41 +101,12 @@ func (store *Store) TransferTransaction(ctx context.Context, arg TransferTxParam
 		// if the FromAccountID is smaller than the ToAccountID, we remove money from the FromAccount first, and then we add money to the destiny account
 		if arg.FromAccountID < arg.ToAccountID {
 
-			result.FromAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-				ID:     arg.FromAccountID,
-				Amount: -arg.Amount,
-			})
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
 
-			if err != nil {
-				return err
-			}
-
-			result.ToAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-				ID:     arg.ToAccountID,
-				Amount: arg.Amount,
-			})
-
-			if err != nil {
-				return err
-			}
 		} else { // if the FromAccountID is greater than the ToAccountID, we remove money from the FromAccount after adding money to the destiny account
-			result.ToAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-				ID:     arg.ToAccountID,
-				Amount: arg.Amount,
-			})
 
-			if err != nil {
-				return err
-			}
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 
-			result.FromAccount, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
-				ID:     arg.FromAccountID,
-				Amount: -arg.Amount,
-			})
-
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil
@@ -143,4 +114,28 @@ func (store *Store) TransferTransaction(ctx context.Context, arg TransferTxParam
 	})
 
 	return result, err
+}
+
+func addMoney(
+	ctx context.Context,
+	q *Queries,
+	accountID1 int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64,
+
+) (account1 Account, account2 Account, err error) {
+	account1, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+		ID:     accountID1,
+		Amount: amount1,
+	})
+	if err != nil {
+		return
+	}
+	account2, err = q.AddAmountAccountBalanceByID(ctx, AddAmountAccountBalanceByIDParams{
+		ID:     accountID2,
+		Amount: amount2,
+	})
+
+	return
 }
