@@ -72,7 +72,13 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.ListAccounts(ctx)
+	arg := db.ListAccountsParams{
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	// search account infos with pagination, based on PageSize
+	accounts, err := server.store.ListAccounts(ctx, arg)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -83,5 +89,5 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 
 	}
-	ctx.JSON(http.StatusOK, account)
+	ctx.JSON(http.StatusOK, accounts)
 }
