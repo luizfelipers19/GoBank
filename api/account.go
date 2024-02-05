@@ -61,17 +61,18 @@ func (server *Server) getAccountByID(ctx *gin.Context) {
 }
 
 type listAccountsRequest struct {
-	PageID int64 `uri:"id" binding:"required,min=1"`
+	PageID   int32 `form:"page_id"" binding:"required,min=1"`
+	PageSize int32 `form:"page_id"" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listAccounts(ctx *gin.Context) {
-	var req getAccountByIdRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	var req listAccountsRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	account, err := server.store.GetAccountByID(ctx, req.ID)
+	account, err := server.store.ListAccounts(ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))

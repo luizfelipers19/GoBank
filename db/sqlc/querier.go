@@ -22,7 +22,7 @@ type Querier interface {
 	GetEntryByID(ctx context.Context, id int64) (Entry, error)
 	GetTransferByID(ctx context.Context, id int64) (Transfer, error)
 	GetTransfers(ctx context.Context) ([]Transfer, error)
-	ListAccounts(ctx context.Context) ([]Account, error)
+	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	UpdateAccountByID(ctx context.Context, arg UpdateAccountByIDParams) (Account, error)
 	UpdateEntryByID(ctx context.Context, arg UpdateEntryByIDParams) (Entry, error)
 	UpdateTransferByID(ctx context.Context, arg UpdateTransferByIDParams) (Transfer, error)
